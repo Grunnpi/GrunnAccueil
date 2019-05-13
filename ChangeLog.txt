@@ -1,0 +1,23 @@
+version en cours :
+    Interface utilisateur :
+        Les logos de comptes sont cliquables et renvoient à l'écran principal de BP dans le compte choisi
+    Optimisations :
+        Suppression de la fonction "erase_virtual_store()" devenue inutile depuis que BP n'est plus installé dans "C:\Program\Files"
+        Modernisation de la fonction "make()" qui permet de créer les objets graphiques d'interface utilisateur
+        Mise en place d'une bibliothèque standard de variables et fonctions relatives aux catégories
+        Mise en place d'un formulaire standard de gestion des groupes de comptes
+
+version 2.3 : publiée
+    ???
+
+version 2.2 :
+    2 corrections mineures + lien vers le wiki
+
+version 2.1 :
+    2 corrections mineures
+
+version 2.0 :
+    plein de trucs en plus
+
+version 1.0 :
+    version initiale
