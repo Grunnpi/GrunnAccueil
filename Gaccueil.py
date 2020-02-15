@@ -43,14 +43,16 @@ index_Complet_total = 3
 #-------------------------------------------------------------------------------
 today = time.localtime()[:3]
 
+
+d_end_of_2019 = time.gmtime( 1577833199 )
 d_end_of_2018 = time.gmtime( 1546297199 )
 d_end_of_2017 = time.gmtime( 1514764799 )
 d_end_of_2016 = time.gmtime( 1483228799 )
 d_end_of_2015 = time.gmtime( 1451606399 )
 
-d_end_of_col1 = d_end_of_2016
-d_end_of_col2 = d_end_of_2017
-d_end_of_col3 = d_end_of_2018
+d_end_of_col1 = d_end_of_2017
+d_end_of_col2 = d_end_of_2018
+d_end_of_col3 = d_end_of_2019
 
 np=1
 ID_YES = 6
@@ -229,7 +231,7 @@ def init_data():
 def update(S=None,P=None):
     global data, headers, prev, todo, selected_accounts
     # mise à jour des en-têtes de colonnes
-    headers = ["Logos","Comptes","Fin 2016","Fin 2017","Fin 2018","Aujourd'hui"]
+    headers = ["Logos","Comptes","Fin 2017","Fin 2018","Fin 2019","Aujourd'hui"]
     date_f=from_delphi_date(df.Date)
     headers.append(date_to_str(date_f))
     # préparation des constantes et variables
