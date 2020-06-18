@@ -28,15 +28,21 @@ version = params['version']
 # constantes
 index_Logo = 0
 index_Compte = 1
-index_Rapproche = 2
-index_Pointe = 3
-index_Aujourdhui = 4
-index_Complet = 5
+index_Col1 = 2
+index_Col2 = 3
+index_Col3 = 4
+#index_Col4 = 5
+index_Aujourdhui = 5
+index_Zarbi = 6
 
-index_Rapproche_total = 0
-index_Pointe_total = 1
-index_Aujourdhui_total = 2
-index_Complet_total = 3
+# Total tableau
+index_Col1_total = 0
+index_Col2_total = 1
+index_Col3_total = 2
+#index_Col4_total = 3
+index_Aujourdhui_total = 3
+
+range_nb_grilles = 4
 
 #-------------------------------------------------------------------------------
 #Constantes & variables
@@ -44,6 +50,7 @@ index_Complet_total = 3
 today = time.localtime()[:3]
 
 
+d_end_of_2020 = time.gmtime( 1577833177 )
 d_end_of_2019 = time.gmtime( 1577833199 )
 d_end_of_2018 = time.gmtime( 1546297199 )
 d_end_of_2017 = time.gmtime( 1514764799 )
@@ -53,6 +60,7 @@ d_end_of_2015 = time.gmtime( 1451606399 )
 d_end_of_col1 = d_end_of_2017
 d_end_of_col2 = d_end_of_2018
 d_end_of_col3 = d_end_of_2019
+d_end_of_col4 = d_end_of_2019
 
 np=1
 ID_YES = 6
@@ -72,7 +80,7 @@ Sw={}
 grid_C={}
 bm_list_C={}
 logo_C={}
-data = {}
+mega_table_data = {} # 3 dimensions : 1=nb de grilles (4 max) 2=Compte dans la grille 3=Colonne pour le compte dans la grille
 headers_O = ["Date","Compte","Montant"]
 headers_R = ["Date","Mode","Montant"]
 group_logo = Path + "groups\\_pas de logo_.png"
@@ -218,25 +226,25 @@ def apply_record(Rec, Until):
 # initialisation des tableaux pour les grilles de comptes
 def init_data():
     ''' création de la structure de données'''
-    global data
+    global mega_table_data
     dummy = Path + "Thumbs\\Dummy.png"
-    for i in range(4):
-        data[i]=[]
+    for i in range(range_nb_grilles):
+        mega_table_data[i]=[]
         for k in range(len(display_accounts)+1):
-            data[i].append([make(CC, "TImage", grid_C[i], Width=100, Height=25, Enabled=False, Picture = dummy),'','','','','',''])
-            data[i][k][0].visible = True
+            mega_table_data[i].append([make(CC, "TImage", grid_C[i], Width=100, Height=25, Enabled=False, Picture = dummy), '', '', '', '', '', ''])
+            mega_table_data[i][k][index_Logo].visible = True
 
 
 # mise à jour après modification des choix
 def update(S=None,P=None):
-    global data, headers, prev, todo, selected_accounts
+    global mega_table_data, headers_une_grille, prev, todo, selected_accounts
     # mise à jour des en-têtes de colonnes
-    headers = ["Logos","Comptes","Fin 2017","Fin 2018","Fin 2019","Aujourd'hui"]
+    headers_une_grille = ["Logos", "Comptes", "Fin 2017", "Fin 2018", "Fin 2019", "Aujourd'hui"]
     date_f=from_delphi_date(df.Date)
-    headers.append(date_to_str(date_f))
+    headers_une_grille.append(date_to_str(date_f))
     # préparation des constantes et variables
     selected_accounts = []
-    for i in range(4):
+    for i in range(range_nb_grilles):
         if Sw[i][0]:
             grid_C[i].ColCount = 6 + sf.Checked
             if bm_list_C[i].ItemIndex!=-1 :
@@ -271,10 +279,10 @@ def update(S=None,P=None):
     tmp.sort()
     todo = [t[1] for t in tmp]
     # mise à jour des soldes de comptes
-    for i in range(4):
+    for i in range(range_nb_grilles):
         idx=Sw[i][0]
         if Sw[i][0]:
-            total = [0,0,0,0,0]
+            table_total = [0,0,0,0,0] # total pour cette grille, nb colonnes de valeurs + 1 grand total ?
             selected_accounts = []
 
             if bm_list_C[i].ItemIndex!=-1 :
@@ -294,32 +302,37 @@ def update(S=None,P=None):
 
                         # choix du LOGO
                         if os.path.isfile(logo):
-                            data[i][idx][index_Logo].Picture.LoadFromFile(logo)
+                            mega_table_data[i][idx][index_Logo].Picture.LoadFromFile(logo)
                         else :
-                            data[i][idx][index_Logo].Picture.LoadFromFile(Path + "Thumbs\\dummy.png")
+                            mega_table_data[i][idx][index_Logo].Picture.LoadFromFile(Path + "Thumbs\\dummy.png")
 
                         # choix du nom du compte
-                        data[i][idx][index_Compte] = compte
+                        mega_table_data[i][idx][index_Compte] = compte
 
                         # total colonne Rapproche : cible d_end_of_col1
                         v = sum([amount for acc, amount, date, mark, categ in values if (date<=d_end_of_col1 and acc==compte)])
-                        data[i][idx][index_Rapproche] = fmt_float(v);
-                        total[index_Rapproche_total]+=v
+                        mega_table_data[i][idx][index_Col1] = fmt_float(v);
+                        table_total[index_Col1_total]+=v
 
                         # total colonne Pointe : cible d_end_of_col2
                         v = sum([amount for acc, amount, date, mark, categ in values if (date<=d_end_of_col2 and acc==compte)])
-                        data[i][idx][index_Pointe] = fmt_float(v);
-                        total[index_Pointe_total]+=v
+                        mega_table_data[i][idx][index_Col2] = fmt_float(v);
+                        table_total[index_Col2_total]+=v
 
                         # total colonne Aujourd'hui : : cible d_end_of_col3
                         v = sum([amount for acc, amount, date, mark, categ in values if (date<=d_end_of_col3 and acc==compte)])
-                        data[i][idx][index_Aujourdhui] = fmt_float(v);
-                        total[index_Aujourdhui_total]+=v
+                        mega_table_data[i][idx][index_Col3] = fmt_float(v);
+                        table_total[index_Col3_total]+=v
+
+                        # # total colonne Aujourd'hui : : cible d_end_of_col4
+                        # v = sum([amount for acc, amount, date, mark, categ in values if (date<=d_end_of_col4 and acc==compte)])
+                        # mega_table_data[i][idx][index_Col4] = fmt_float(v);
+                        # table_total[index_Col4_total]+=v
 
                         # total colonne Complet
                         v = sum([amount for acc, amount, date, mark, categ in values if (date<=today and acc==compte)])
-                        data[i][idx][index_Complet] = fmt_float(v);
-                        total[index_Complet_total]+=v
+                        mega_table_data[i][idx][index_Aujourdhui] = fmt_float(v);
+                        table_total[index_Aujourdhui_total]+=v
 
                         #On parcoure la liste des échéances et on garde celles qui concernent le compte courant
                         v = sum([amount for acc, amount, date, mark, categ in values if (date<=date_f and acc==compte)])
@@ -332,17 +345,17 @@ def update(S=None,P=None):
                             if transfert != -1 :
                                 if transfert in (acc, UID) :
                                     v -= apply_record(Rec, date_f)
-                        data[i][idx][6] = fmt_float(v); total[4]+=v
+                        mega_table_data[i][idx][index_Zarbi] = fmt_float(v); table_total[4]+=v
                         idx+=1
 
             # impression LOGO
-            data[i][idx][index_Logo].Picture.LoadFromFile(Path + "Thumbs\\dummy.png")
-            data[i][idx][index_Compte]="Total"
+            mega_table_data[i][idx][index_Logo].Picture.LoadFromFile(Path + "Thumbs\\dummy.png")
+            mega_table_data[i][idx][index_Compte]= "Total"
             Sw[i][0]=idx
-            for k in range(len(total)):
-                data[i][idx][k+2]=fmt_float(total[k])
-            for k in range(len(data[i])-1):
-                data[i][k][index_Logo].visible = True
+            for k in range(len(table_total)):
+                mega_table_data[i][idx][k + 2]=fmt_float(table_total[k])
+            for k in range(len(mega_table_data[i]) - 1):
+                mega_table_data[i][k][index_Logo].visible = True
     SetColumnsWidth()
     ResizeForm()
 
@@ -359,12 +372,12 @@ def SetColumnsWidth():
     for i in range(4):
         if Sw[i][0]:
             for j in range(Sw[i][0]):
-                w0=max(w0,data[i][j][0].Picture.Width+10)
-                w1=max(w1,grid_C[i].Canvas.TextWidth(data[i][j][1])*1.15+10)
+                w0=max(w0, mega_table_data[i][j][index_Logo].Picture.Width + 10)
+                w1=max(w1, grid_C[i].Canvas.TextWidth(mega_table_data[i][j][1]) * 1.15 + 10)
     for i in range(4):
         for j in range(Sw[i][0]):
-            for n in range(2,len(data[i][j])):
-                w2 = max(w2,grid_C[i].Canvas.TextWidth(data[i][j][n])+10)
+            for n in range(2, len(mega_table_data[i][j])):
+                w2 = max(w2, grid_C[i].Canvas.TextWidth(mega_table_data[i][j][n]) + 10)
             if (grid_C[i].DefaultRowHeight+1) * grid_C[i].RowCount+2 >= grid_C[i].Height:
                 grid_C[i].DefaultColWidth = max(w2,(grid_C[i].Width - grid_C[i].ColCount - 20 - w0 - w1) / (grid_C[i].ColCount - 2))
             else:
@@ -520,16 +533,16 @@ def draw(Sender, ACol, ARow, R, State):
     maginV = (Sender.DefaultRowHeight-cv.TextHeight("A"))/2
     cv.Font.Color = 0x00000000
     cv.Brush.Color = 0x00e0e0e0
-    if headers[ACol]=="Logos" or headers[ACol]=="Comptes":
+    if headers_une_grille[ACol]== "Logos" or headers_une_grille[ACol]== "Comptes":
         cv.Font.Color  = 0x00000000
         cv.Brush.Color = 0x00d0d0d0
     if ARow == 0 :
         cv.Font.Color = 0x00ffffff
         cv.Brush.Color = 0x00400000
     else:
-        if headers[ACol]=="Aujourd'hui":
+        if headers_une_grille[ACol]== "Aujourd'hui":
             cv.Brush.Color -= 0x00200000
-        elif headers[ACol]=="Pointé":
+        elif headers_une_grille[ACol]== "Fin 2019":
             cv.Brush.Color -= 0x00001020
 
     if ARow % 2 == 0: cv.Brush.Color += 0x001f1f1f
@@ -538,7 +551,7 @@ def draw(Sender, ACol, ARow, R, State):
     try:
         if ARow == 0:
             #Ligne d'en-tête
-            s = headers[ACol]
+            s = headers_une_grille[ACol]
             cv.Font.Style = ["fsBold"]
             cv.TextRect(R, R.Left + 3, R.Top + maginV, s)
         else:
@@ -547,20 +560,20 @@ def draw(Sender, ACol, ARow, R, State):
                 cv.Brush.Color = 0x00600000
                 cv.Font.Color  = 0x00ffffff
                 cv.Font.Style = ["fsBold"]
-            if headers[ACol]=="Logos":
+            if headers_une_grille[ACol]== "Logos":
                 # masquer toute image se trouvant sur cette ligne
-                for i in range(len(data[grid])-1):
-                    if (data[grid][i][ACol].Top == R.Top+3) and i!=index: data[grid][i][ACol].Visible = False
+                for i in range(len(mega_table_data[grid]) - 1):
+                    if (mega_table_data[grid][i][ACol].Top == R.Top + 3) and i!=index: mega_table_data[grid][i][ACol].Visible = False
                 # afficher l'image de la ligne
-                data[grid][index][ACol].SetProps(Top = R.Top+3, Left = R.Right -5 - data[grid][index][ACol].Picture.Width, Visible = True)
-            elif  headers[ACol]=="Comptes":
+                mega_table_data[grid][index][ACol].SetProps(Top =R.Top + 3, Left =R.Right - 5 - mega_table_data[grid][index][ACol].Picture.Width, Visible = True)
+            elif  headers_une_grille[ACol]== "Comptes":
                 cv.Font.Style = ["fsBold"]
-                s = data[grid][index][ACol]
+                s = mega_table_data[grid][index][ACol]
                 #Alignement à gauche pour les textes
                 cv.TextRect(R, R.Left + 3, R.Top + maginV, s)
             else:
                 #Alignement à droite pour les montants
-                z = data[grid][index][ACol]
+                z = mega_table_data[grid][index][ACol]
                 if z.startswith("-"):
                     cv.Font.Color = 0x000000cc
                     if ARow == Sw[grid][0]+1:
@@ -723,7 +736,7 @@ def Sortie(Sender=None,P=None):
         if Sender == grid_C[n]: i=n
     if i<4:
         if grid_C[i].Row-1 < Sw[i][0]:
-            name = data[i][grid_C[i].Row-1][1]
+            name = mega_table_data[i][grid_C[i].Row - 1][1]
             if name!='':
                 acc = real_index[name]
                 BP.AccountChangeCurrent(acc)
